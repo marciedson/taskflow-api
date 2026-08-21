@@ -32,7 +32,7 @@ function Login({ onLogin }) {
       <form className={`login-form ${shake ? 'shake' : ''}`} onSubmit={handleLogin}>
         <h2>Login</h2>
         <label>
-          Usuário 👤
+          Usuário👤
           <input
             type="text"
             value={usuario}
@@ -42,7 +42,7 @@ function Login({ onLogin }) {
           />
         </label>
         <label>
-          Senha
+          Senha🔑
           <input
             type="password"
             value={senha}
