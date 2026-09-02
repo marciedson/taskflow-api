@@ -6,9 +6,9 @@ app.use(express.json());
 
 
 let tarefas = [
-    { id: 1, texto: 'Estudar Express', prioridade: 'alta', coluna: 'fazer', cidade: 'SP' },
-    { id: 2, texto: 'Criar rotas API', prioridade: 'media', coluna: 'em andamento', cidade: 'RJ' },
-    { id: 3, texto: 'Testar com Postman', prioridade: 'baixa', coluna: 'fazer', cidade: 'SP' }
+    { id: 1, texto: 'Estudar Express', prioridade: 'alta', coluna: 'fazer', cidade: 'Natal/RN' },
+    { id: 2, texto: 'Criar rotas API', prioridade: 'media', coluna: 'em andamento', cidade: 'Ceará-Mirim/RN' },
+    { id: 3, texto: 'Testar com Postman', prioridade: 'baixa', coluna: 'fazer', cidade: 'Parnamirim/RN' }
 ];
 let proximoId = 4;
 
