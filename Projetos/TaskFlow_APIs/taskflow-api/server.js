@@ -1,9 +1,10 @@
 const express = require('express');
-const tarefasRoutes = require('./src/routes/tarefas.routes');
-const usuariosRoutes = require('./src/routes/usuarios.routes');
-const projetosRoutes = require('./src/routes/projetos.routes');
+const tarefasRoutes = require('./routes/tarefas.routes');
+const usuariosRoutes = require('./routes/usuarios.routes');
+const projetosRoutes = require('./routes/projetos.routes');
 
 const app = express();
+app.use(temporizador);
 const PORTA = 3001;
 
 app.use(express.json());
