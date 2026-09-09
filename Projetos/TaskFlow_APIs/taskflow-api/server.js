@@ -3,6 +3,7 @@ const tarefasRoutes = require('./routes/tarefas.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const projetosRoutes = require('./routes/projetos.routes');
 const temporizador = require('./controllers/middlewares/logger');
+const corsMiddleware = require('./controllers/middlewares/cors');
 
 const app = express();
 app.use(temporizador);
@@ -21,6 +22,8 @@ app.use('/projetos', projetosRoutes);
 app.use((req, res) => {
     res.status(404).json({ erro: 'Rota não encontrada' });
 });
+
+app.use(corsMiddleware);
 
 app.listen(PORTA, () => {
     console.log(`Servidor rodando em http://localhost:${PORTA}`);
