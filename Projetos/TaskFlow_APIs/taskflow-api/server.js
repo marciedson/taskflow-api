@@ -2,10 +2,11 @@ const express = require('express');
 const tarefasRoutes = require('./routes/tarefas.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const projetosRoutes = require('./routes/projetos.routes');
+const temporizador = require('./controllers/middlewares/logger');
 
 const app = express();
 app.use(temporizador);
-const PORTA = 3001;
+const PORTA = 3000;
 
 app.use(express.json());
 

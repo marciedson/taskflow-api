@@ -1,4 +1,4 @@
-const Tarefa = require('../models/tarefa.model');
+const Tarefa = require('../models/tarefas.model');
 
 exports.listarTodas = (req, res) => {
     try {
@@ -62,6 +62,7 @@ exports.atualizar = (req, res) => {
         res.status(500).json({ erro: 'Erro ao atualizar tarefa', detalhes: error.message });
     }
 };
+
 exports.deletar = (req, res) => {
     try {
         const { id } = req.params;
@@ -75,5 +76,34 @@ exports.deletar = (req, res) => {
         res.status(200).json({ mensagem: 'Tarefa removida com sucesso!' });
     } catch (error) {
         res.status(500).json({ erro: 'Erro ao deletar tarefa', detalhes: error.message });
+    }
+};
+
+exports.estatisticas = (req, res) => {
+    try {
+        const tarefas = Tarefa.listar();
+        const total = tarefas.length;
+        const concluidas = tarefas.filter(t => t.status === 'concluida').length;
+        const pendentes = tarefas.filter(t => t.status === 'pendente').length;
+
+        res.status(200).json({ total, concluidas, pendentes });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao buscar estatísticas', detalhes: error.message });
+    }
+};
+
+exports.estatisticasResumo = (req, res) => {
+    try {
+        const tarefas = Tarefa.listar();
+        const resumo = {
+            total: tarefas.length,
+            concluidas: tarefas.filter(t => t.status === 'concluida').length,
+            pendentes: tarefas.filter(t => t.status === 'pendente').length,
+            emAndamento: tarefas.filter(t => t.status === 'em andamento').length
+        };
+
+        res.status(200).json({ resumo });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao buscar resumo de estatísticas', detalhes: error.message });
     }
 };
