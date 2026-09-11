@@ -1,9 +1,11 @@
+require('dotenv').config(); 
 const express = require('express');
 const tarefasRoutes = require('./routes/tarefas.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const projetosRoutes = require('./routes/projetos.routes');
 const temporizador = require('./middlewares/logger');
 const corsMiddleware = require('./middlewares/cors');
+const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 const PORTA = 3000;
@@ -19,6 +21,7 @@ app.get('/', (req, res) => {
 app.use('/tarefas', tarefasRoutes);
 app.use('/usuarios', usuariosRoutes);
 app.use('/projetos', projetosRoutes);
+app.use('/auth', authRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ erro: 'Rota não encontrada' });

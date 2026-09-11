@@ -1,8 +1,20 @@
-let usuarios = [];
+let usuarios = [
+    {
+        id: 1,
+        nome: 'Marciedson',
+        email: 'marciedson@senai.com',
+        senha: '123456'
+    }
+];
+
+function buscarPorEmail(email) {
+    return usuarios.find(u => u.email === email);
+}
 
 module.exports = {
     listar: () => usuarios,
     buscarPorId: (id) => usuarios.find(u => u.id === Number(id)),
+    buscarPorEmail: (email) => usuarios.find(u => u.email === email),
     criar: (usuario) => {
         const novoUsuario = { id: Date.now(), ...usuario };
         usuarios.push(novoUsuario);
@@ -23,3 +35,5 @@ module.exports = {
         return removido;
     }
 };
+
+module.exports.buscarPorEmail = buscarPorEmail;
