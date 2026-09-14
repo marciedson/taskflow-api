@@ -5,6 +5,7 @@ const usuarioController = require('../controllers/usuarios.controller');
 const projetoController = require('../controllers/projetos.controller');
 const validar = require('../middlewares/validar');
 const schemas = require('../middlewares/schemas');
+const app = require('../server');
 
 assert.strictEqual(typeof tarefasController.listarTodas, 'function');
 assert.strictEqual(typeof tarefasController.estatisticas, 'function');
@@ -16,6 +17,8 @@ assert.strictEqual(typeof schemas, 'object');
 assert.strictEqual(typeof schemas.tarefa, 'object');
 assert.strictEqual(typeof schemas.usuario, 'object');
 assert.strictEqual(typeof schemas.projeto, 'object');
+assert.strictEqual(typeof app.use, 'function');
+assert.strictEqual(typeof app.get, 'function');
 
 require('../routes/tarefas.routes');
 require('../routes/usuarios.routes');

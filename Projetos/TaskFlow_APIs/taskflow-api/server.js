@@ -1,4 +1,4 @@
-require('dotenv').config(); 
+require('dotenv').config();
 const express = require('express');
 const tarefasRoutes = require('./routes/tarefas.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
@@ -8,7 +8,7 @@ const corsMiddleware = require('./middlewares/cors');
 const authRoutes = require('./routes/auth.routes');
 
 const app = express();
-const PORTA = 3000;
+const PORTA = process.env.PORT || 3000;
 
 app.use(corsMiddleware);
 app.use(express.json());
@@ -27,6 +27,10 @@ app.use((req, res) => {
     res.status(404).json({ erro: 'Rota não encontrada' });
 });
 
-app.listen(PORTA, () => {
-    console.log(`Servidor rodando em http://localhost:${PORTA}`);
-});
+if (require.main === module) {
+    app.listen(PORTA, () => {
+        console.log(`Servidor rodando em http://localhost:${PORTA}`);
+    });
+}
+
+module.exports = app;

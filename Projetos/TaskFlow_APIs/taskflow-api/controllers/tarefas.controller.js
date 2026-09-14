@@ -26,7 +26,15 @@ exports.buscarPorId = (req, res) => {
 
 exports.criar = (req, res) => {
     try {
-        const { titulo, descricao, projetoId, usuarioId } = req.body;
+        const { titulo, descricao } = req.body;
+        const projetoIdBody = req.body.projetoId ?? req.body.projeto_id ?? null;
+        const usuarioIdBody = req.body.usuarioId ?? req.body.usuario_id ?? null;
+
+        const projetoId = projetoIdBody === null || projetoIdBody === undefined || projetoIdBody === ''
+            ? null
+            : Number(projetoIdBody);
+
+        const usuarioId = req.usuario?.id ?? usuarioIdBody ?? null;
 
         if (!titulo) {
             return res.status(400).json({ erro: 'O título da tarefa é obrigatório' });
@@ -36,8 +44,10 @@ exports.criar = (req, res) => {
             titulo,
             descricao: descricao || '',
             status: 'pendente',
-            projetoId: projetoId || null,
-            usuarioId: usuarioId || null
+            projetoId,
+            usuarioId: usuarioId === null || usuarioId === undefined || usuarioId === ''
+                ? null
+                : Number(usuarioId)
         });
 
         res.status(201).json({ mensagem: 'Tarefa criada com sucesso!', tarefa: novaTarefa });

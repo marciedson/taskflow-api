@@ -1,16 +1,16 @@
 function corsMiddleware(req, res, next) {
+    const origem = process.env.CORS_ORIGIN || '*';
 
-    res.setHeader('Access-Control-Allow-Origin', 'https://www.google.com');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Origin', origem);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Max-Age', '86400');
 
-
-
-   if (req.method === 'OPTIONS') {
+    if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
+
     next();
 }
 
-module.exports = corsMiddleware; 
+module.exports = corsMiddleware;
