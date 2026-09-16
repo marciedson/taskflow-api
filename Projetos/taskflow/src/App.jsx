@@ -4,17 +4,19 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import About from "./pages/About";
 import PrivateRoute from "./Componentes/PrivateRoute";
-import { useState } from "react";
+import { useContext } from "react";
 import { Routes, Route } from "react-router-dom";
+import { AuthContext } from "./Componentes/contexts/AuthContext";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { token, login, logout } = useContext(AuthContext);
+  const isAuthenticated = Boolean(token);
 
   return (
     <div className="app-root">
       <Sidebar
         isAuthenticated={isAuthenticated}
-        onLogout={() => setIsAuthenticated(false)}
+        onLogout={logout}
       />
       <div className="app-main">
         <Routes>
@@ -36,7 +38,7 @@ function App() {
           />
           <Route
             path="/login"
-            element={<Login onLogin={() => setIsAuthenticated(true)} />}
+            element={<Login login={login} />}
           />
           <Route path="/sobre" element={<About />} />
         </Routes>
