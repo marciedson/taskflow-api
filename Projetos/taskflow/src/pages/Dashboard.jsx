@@ -1,6 +1,6 @@
 import "../App.css";
 import Header from "../Componentes/Header";
-import ListaTarefas from "../Componentes/ListaTarefas";
+import Kanban from "../Componentes/kanban";
 import Contador from "../Componentes/Contador";
 import ModalTarefa from "../Componentes/ModalTarefa";
 import { useState } from "react";
@@ -60,15 +60,13 @@ export default function Home() {
     <>
       <Header titulo=" TaskFlow " subtitulo="Gerencie suas tarefas" />
       <main className="container">
-        <section id="formulario">
-          <div className="campo-linha">
-            <button id="btn-adicionar" type="button" onClick={abrirCriar}>
-              Nova tarefa
-            </button>
-          </div>
-        </section>
-
-        <ListaTarefas tarefas={tarefas} onDeletar={deletarTarefa} onConcluir={alternarConcluida} onEditar={abrirEditar} />
+        <Kanban
+          tarefas={tarefas}
+          onAdicionar={abrirCriar}
+          onDeletar={deletarTarefa}
+          onConcluir={alternarConcluida}
+          onEditar={abrirEditar}
+        />
 
         <ModalTarefa
           isOpen={modalOpen}
