@@ -1,70 +1,67 @@
-import { useState, useEffect } from 'react';
-import api from '../api';
 import TarefaItem from './TarefaItem';
 import styles from './TarefaItem.module.css';
 
-export default function Kanban() {
-  const [tarefas, setTarefas] = useState([]);
-  const [erro, setErro] = useState('');
+export default function Kanban({
+  tarefas = [],
+  onAdicionar,
+  onDeletar,
+  onConcluir,
+  onEditar,
+}) {
+  const colunas = [
+    { id: 'pending', titulo: 'Pendentes' },
+    { id: 'inprogress', titulo: 'Em andamento' },
+    { id: 'done', titulo: 'Concluídas' },
+  ];
 
-  useEffect(() => {
-    async function carregarTarefas() {
-      try {
-        const resposta = await api.get('/tarefas');
-        setTarefas(resposta.data);
-      } catch (err) {
-        setErro('Erro ao carregar as tarefas.');
-      }
-    }
-    carregarTarefas();
-  }, []);
-
-  async function salvarTarefa(dados) {
-    if (dados.id === undefined) {
-  
-      try {
-        const resposta = await api.post('/tarefas', dados);
-        setTarefas([...tarefas, resposta.data]);
-      } catch (err) {
-        setErro('Erro ao criar tarefa. Tente novamente.');
-      }
-    } else {
-   
-      try {
-        const resposta = await api.put(`/tarefas/${dados.id}`, dados);
-        setTarefas(
-          tarefas.map(t => (t.id === dados.id ? resposta.data : t))
-        );
-      } catch (err) {
-        setErro('Erro ao editar tarefa. Tente novamente.');
-      }
-    }
-  }
-
-  async function deletarTarefa(id) {
-    try {
-      await api.delete(`/tarefas/${id}`);
-      setTarefas(tarefas.filter(t => t.id !== id));
-    } catch (err) {
-      setErro('Erro ao deletar.');
-    }
-  }
-
-  async function moverTarefa(id, novaColuna) {
-    try {
-      const resposta = await api.put(`/tarefas/${id}`, { coluna: novaColuna });
-      setTarefas(
-        tarefas.map(t => (t.id === id ? resposta.data : t))
-      );
-    } catch (err) {
-      setErro('Erro ao mover tarefa.');
-    }
-  }
+  const obterStatus = (tarefa) => {
+    if (tarefa.status) return tarefa.status;
+    return tarefa.concluida ? 'done' : 'pending';
+  };
 
   return (
-    <div className="kanban-container">
-      {erro && <p className="erro">{erro}</p>}
+    <section className={styles.kanbanSection}>
+      <div className={styles.kanbanHeader}>
+        <h2>Minhas tarefas</h2>
+        <p>Organize suas atividades por etapa.</p>
+        <button type="button" className={styles.actionButton} onClick={onAdicionar}>
+          Adicionar tarefa
+        </button>
+      </div>
 
-    </div>
+      <div className={styles.kanbanBoard}>
+        {colunas.map((coluna) => {
+          const tarefasDaColuna = tarefas.filter(
+            (tarefa) => obterStatus(tarefa) === coluna.id
+          );
+
+          return (
+            <div className={styles.column} key={coluna.id}>
+              <div className={styles.columnHeader}>
+                <span>{coluna.titulo}</span>
+                <span className={styles.columnCount}>{tarefasDaColuna.length}</span>
+              </div>
+              <ul className={styles.columnBody}>
+                {tarefasDaColuna.length === 0 ? (
+                  <li className={styles.emptyText}>Nenhuma tarefa aqui.</li>
+                ) : (
+                  tarefasDaColuna.map((tarefa) => (
+                    <TarefaItem
+                      key={tarefa.id}
+                      {...tarefa}
+                      status={obterStatus(tarefa)}
+                      onEditar={() => onEditar(tarefa)}
+                      onDeletar={() => onDeletar(tarefa.id)}
+                      onConcluir={() => onConcluir(tarefa.id)}
+                      onStatusChange={(status) => onConcluir(tarefa.id, status)}
+                    />
+                  ))
+                )}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

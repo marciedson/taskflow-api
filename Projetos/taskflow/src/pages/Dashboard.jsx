@@ -1,10 +1,8 @@
 import "../App.css";
 import Header from "../Componentes/Header";
 import Kanban from "../Componentes/kanban";
-import Contador from "../Componentes/Contador";
 import ModalTarefa from "../Componentes/ModalTarefa";
 import { useState } from "react";
-import Login from "./Login";
 
 export default function Home() {
   const [tarefas, setTarefas] = useState([]);
@@ -33,7 +31,12 @@ export default function Home() {
       setTarefas((current) => current.map((t) => (t.id === taskData.id ? { ...t, ...taskData } : t)));
     } else {
       // criar
-      const nova = { ...taskData, id: proximaId, concluida: taskData.concluida || false };
+      const nova = {
+        ...taskData,
+        id: proximaId,
+        status: taskData.status || "pending",
+        concluida: taskData.concluida || false,
+      };
       setTarefas((current) => [...current, nova]);
       setProximaId((id) => id + 1);
     }
@@ -46,10 +49,21 @@ export default function Home() {
     fecharModal();
   };
 
-  const alternarConcluida = (id) => {
+  const alternarConcluida = (id, novoStatus) => {
     const tarefasAtualizadas = tarefas.map((tarefa) => {
       if (tarefa.id === id) {
-        return { ...tarefa, concluida: !tarefa.concluida };
+        if (novoStatus) {
+          return {
+            ...tarefa,
+            status: novoStatus,
+            concluida: novoStatus === "done",
+          };
+        }
+        return {
+          ...tarefa,
+          status: tarefa.concluida ? "pending" : "done",
+          concluida: !tarefa.concluida,
+        };
       }
       return tarefa;
     });
