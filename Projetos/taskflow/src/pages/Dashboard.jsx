@@ -2,13 +2,14 @@ import "../App.css";
 import Header from "../Componentes/Header";
 import Kanban from "../Componentes/kanban";
 import ModalTarefa from "../Componentes/ModalTarefa";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../Componentes/contexts/AuthContext";
 
-const TAREFAS_STORAGE_KEY = "taskflow:tarefas";
+const TAREFAS_STORAGE_KEY_PREFIX = "taskflow:tarefas:";
 
-function carregarTarefasSalvas() {
+function carregarTarefasSalvas(chave) {
   try {
-    const tarefasSalvas = JSON.parse(localStorage.getItem(TAREFAS_STORAGE_KEY));
+    const tarefasSalvas = JSON.parse(localStorage.getItem(chave));
     return Array.isArray(tarefasSalvas) ? tarefasSalvas : [];
   } catch {
     return [];
@@ -16,17 +17,19 @@ function carregarTarefasSalvas() {
 }
 
 export default function Home() {
-  const [tarefas, setTarefas] = useState(carregarTarefasSalvas);
+  const { usuario } = useContext(AuthContext);
+  const chaveTarefas = `${TAREFAS_STORAGE_KEY_PREFIX}${usuario?.id || "sem-usuario"}`;
+  const [tarefas, setTarefas] = useState(() => carregarTarefasSalvas(chaveTarefas));
   const [proximaId, setProximaId] = useState(() => {
-    const tarefasSalvas = carregarTarefasSalvas();
+    const tarefasSalvas = carregarTarefasSalvas(chaveTarefas);
     return tarefasSalvas.reduce((maiorId, tarefa) => Math.max(maiorId, Number(tarefa.id) || 0), 0) + 1;
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem(TAREFAS_STORAGE_KEY, JSON.stringify(tarefas));
-  }, [tarefas]);
+    localStorage.setItem(chaveTarefas, JSON.stringify(tarefas));
+  }, [chaveTarefas, tarefas]);
 
   const abrirCriar = () => {
     setEditingTask(null);
