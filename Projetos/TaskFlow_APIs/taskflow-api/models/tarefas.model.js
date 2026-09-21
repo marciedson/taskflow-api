@@ -23,8 +23,8 @@ function salvarTarefas(tarefas) {
 let tarefas = carregarTarefas();
 
 module.exports = {
-    listar: () => tarefas,
-    buscarPorId: (id) => tarefas.find(t => t.id === Number(id)),
+    listar: (usuarioId) => tarefas.filter(t => t.usuarioId === Number(usuarioId)),
+    buscarPorId: (id, usuarioId) => tarefas.find(t => t.id === Number(id) && t.usuarioId === Number(usuarioId)),
     criar: (tarefa) => {
         const novaTarefa = { id: Date.now(), ...tarefa };
         tarefas.push(novaTarefa);
@@ -32,15 +32,15 @@ module.exports = {
         return novaTarefa;
     },
     atualizar: (id, tarefaAtualizada) => {
-        const indice = tarefas.findIndex(t => t.id === Number(id));
+        const indice = tarefas.findIndex(t => t.id === Number(id) && t.usuarioId === Number(tarefaAtualizada.usuarioId));
         if (indice === -1) return null;
 
         tarefas[indice] = { ...tarefas[indice], ...tarefaAtualizada, id: Number(id) };
         salvarTarefas(tarefas);
         return tarefas[indice];
     },
-    deletar: (id) => {
-        const indice = tarefas.findIndex(t => t.id === Number(id));
+    deletar: (id, usuarioId) => {
+        const indice = tarefas.findIndex(t => t.id === Number(id) && t.usuarioId === Number(usuarioId));
         if (indice === -1) return null;
 
         const [removida] = tarefas.splice(indice, 1);
