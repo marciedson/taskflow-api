@@ -2,13 +2,31 @@ import "../App.css";
 import Header from "../Componentes/Header";
 import Kanban from "../Componentes/kanban";
 import ModalTarefa from "../Componentes/ModalTarefa";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const TAREFAS_STORAGE_KEY = "taskflow:tarefas";
+
+function carregarTarefasSalvas() {
+  try {
+    const tarefasSalvas = JSON.parse(localStorage.getItem(TAREFAS_STORAGE_KEY));
+    return Array.isArray(tarefasSalvas) ? tarefasSalvas : [];
+  } catch {
+    return [];
+  }
+}
 
 export default function Home() {
-  const [tarefas, setTarefas] = useState([]);
-  const [proximaId, setProximaId] = useState(1);
+  const [tarefas, setTarefas] = useState(carregarTarefasSalvas);
+  const [proximaId, setProximaId] = useState(() => {
+    const tarefasSalvas = carregarTarefasSalvas();
+    return tarefasSalvas.reduce((maiorId, tarefa) => Math.max(maiorId, Number(tarefa.id) || 0), 0) + 1;
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem(TAREFAS_STORAGE_KEY, JSON.stringify(tarefas));
+  }, [tarefas]);
 
   const abrirCriar = () => {
     setEditingTask(null);
