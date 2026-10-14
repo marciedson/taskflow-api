@@ -25,7 +25,7 @@ exports.buscarPorId = async (req, res) => {
 
 exports.criar = async (req, res) => {
     try {
-        const { titulo, prioridade, coluna } = req.body;
+        const { titulo, prioridade, coluna, ordem } = req.body;
         const projetoIdInformado = req.body.projetoId ?? req.body.projeto_id;
         const projetoId = Number(projetoIdInformado);
 
@@ -33,10 +33,11 @@ exports.criar = async (req, res) => {
             return res.status(400).json({ erro: 'Um projetoId válido é obrigatório para criar uma tarefa' });
         }
 
-        const tarefa = await Tarefa.criar({
-            titulo,
+        const tarefa = await Tarefa.adicionar({
+            titulo, 
             prioridade,
             coluna: coluna || 'afazer',
+            ordem,
             projetoId,
             usuarioId: req.usuario.id
         });
@@ -54,7 +55,7 @@ exports.criar = async (req, res) => {
 exports.atualizar = async (req, res) => {
     try {
         const atualizacao = {};
-        for (const campo of ['titulo', 'prioridade', 'coluna']) {
+        for (const campo of ['titulo', 'prioridade', 'coluna', 'ordem']) {
             if (Object.hasOwn(req.body, campo)) atualizacao[campo] = req.body[campo];
         }
 
@@ -67,7 +68,7 @@ exports.atualizar = async (req, res) => {
             atualizacao.projetoId = projetoId;
         }
 
-        const tarefa = await Tarefa.atualizar(req.params.id, atualizacao, req.usuario.id);
+        const tarefa = await Tarefa.atualizar(req.params.id, req.usuario.id, atualizacao);
         if (!tarefa) {
             return res.status(404).json({ erro: 'Tarefa ou projeto não encontrado para este usuário' });
         }
@@ -80,7 +81,7 @@ exports.atualizar = async (req, res) => {
 
 exports.deletar = async (req, res) => {
     try {
-        const removida = await Tarefa.deletar(req.params.id, req.usuario.id);
+        const removida = await Tarefa.remover(req.params.id, req.usuario.id);
         if (!removida) {
             return res.status(404).json({ erro: 'Tarefa não encontrada' });
         }
