@@ -1,10 +1,10 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const express = require('express');
+const cors = require('cors');
 const tarefasRoutes = require('./routes/tarefas.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const projetosRoutes = require('./routes/projetos.routes');
 const temporizador = require('./middlewares/logger');
-const corsMiddleware = require('./middlewares/cors');
 const authRoutes = require('./routes/auth.routes');
 
 const pool = require('./database/db');
@@ -19,8 +19,31 @@ pool.query('SELECT NOW()', (err, res) => {
 
 const app = express();
 const PORTA = process.env.PORT || 3000;
+const origensPermitidas = new Set([
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    ...(process.env.CORS_ORIGIN || '')
+        .split(',')
+        .map(origem => origem.trim())
+        .filter(Boolean)
+]);
 
-app.use(corsMiddleware);
+app.use(cors({
+    origin: (origem, callback) => {
+        if (!origem || origensPermitidas.has(origem)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+app.options(/(.*)/, cors());
 app.use(express.json());
 app.use(temporizador);
 
