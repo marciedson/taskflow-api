@@ -21,6 +21,11 @@ body {
   padding: 0 16px;
 }
 
+main.container {
+  width: 100%;
+  max-width: 1280px;
+}
+
 
 header {
   background-color: #1B2A3B;

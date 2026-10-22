@@ -8,6 +8,8 @@ const camposTarefa = `
   t.projeto_id AS "projetoId",
   t.usuario_id AS "usuarioId",
   t.criado_em AS "criadoEm",
+  u.nome AS "usuarioNome",
+  pr.nome AS "projetoNome",
   CASE lower(p.descricao)
     WHEN 'alto' THEN 'alta'
     WHEN 'medio' THEN 'media'
@@ -35,6 +37,8 @@ async function listar(usuarioId) {
   const { rows } = await pool.query(`
     SELECT ${camposTarefa}
     FROM tarefas t
+    LEFT JOIN usuarios u ON u.id = t.usuario_id
+    LEFT JOIN projetos pr ON pr.id = t.projeto_id
     LEFT JOIN prioridades p ON p.id = t.id_prioridades
     WHERE t.usuario_id = $1
     ORDER BY t.ordem, t.id
@@ -47,6 +51,8 @@ async function buscarPorId(id, usuarioId) {
   const { rows } = await pool.query(`
     SELECT ${camposTarefa}
     FROM tarefas t
+    LEFT JOIN usuarios u ON u.id = t.usuario_id
+    LEFT JOIN projetos pr ON pr.id = t.projeto_id
     LEFT JOIN prioridades p ON p.id = t.id_prioridades
     WHERE t.id = $1 AND t.usuario_id = $2
   `, [id, usuarioId]);

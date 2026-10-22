@@ -5,17 +5,29 @@ function TarefaItem({
   concluida = false,
   prioridade = 'media',
   status = 'pending',
+  usuarioNome,
+  projetoNome,
   cep,
   cepInfo,
+  deletando = false,
+  arrastando = false,
   onDeletar,
   onConcluir,
   onStatusChange,
   onEditar,
+  onExclusaoAnimada,
+  onArrastoIniciado,
+  onArrastoFinalizado,
 }) {
-  const classeItem =
+  const classeItem = [
     (concluida ? styles.tarefa + ' ' + styles.concluida : styles.tarefa) +
-    ' ' +
-    styles[prioridade];
+      ' ' +
+      styles[prioridade],
+    deletando ? styles.tarefaExcluindo : '',
+    arrastando ? styles.tarefaArrastando : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const classeTexto =
     concluida
@@ -32,12 +44,25 @@ function TarefaItem({
     : null;
 
   return (
-    <li className={classeItem}>
+    <li
+      className={classeItem}
+      draggable={!deletando}
+      onDragStart={onArrastoIniciado}
+      onDragEnd={onArrastoFinalizado}
+      onAnimationEnd={deletando ? onExclusaoAnimada : undefined}
+    >
       <div className={styles.taskContent}>
         <div>
           <span className={classeTexto} onClick={onConcluir}>
             {texto}
           </span>
+          {(projetoNome || usuarioNome) && (
+            <span className={styles.cepDados}>
+              {projetoNome && `Projeto: ${projetoNome}`}
+              {projetoNome && usuarioNome && ' · '}
+              {usuarioNome && `Usuário: ${usuarioNome}`}
+            </span>
+          )}
           {endereco && <span className={styles.cepDados}>{endereco}</span>}
         </div>
         <span className={classePrioridade}>{prioridade}</span>

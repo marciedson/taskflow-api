@@ -19,6 +19,39 @@
   transform: translateY(-1px);
 }
 
+.tarefa[draggable="true"] {
+  cursor: grab;
+}
+
+.tarefa[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.tarefaArrastando {
+  opacity: 0.45;
+  border-color: #F5A623;
+  transform: scale(0.98);
+}
+
+.tarefaExcluindo {
+  pointer-events: none;
+  animation: tarefaExcluindo 360ms ease-in forwards;
+}
+
+@keyframes tarefaExcluindo {
+  to {
+    opacity: 0;
+    transform: translateX(24px) scale(0.96);
+    filter: saturate(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarefaExcluindo {
+    animation-duration: 1ms;
+  }
+}
+
 /* Prioridades — cor da borda esquerda */
 .tarefa.alta   { border-left-color: #EF4444; }
 .tarefa.media  { border-left-color: #F5A623; }
@@ -163,6 +196,14 @@
   flex: 1;
   list-style: none;
   margin: 0;
+  border: 1px solid transparent;
+  border-radius: 0 0 18px 18px;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.columnBodyDropTarget {
+  border-color: rgba(245, 166, 35, 0.6);
+  background-color: rgba(245, 166, 35, 0.07);
 }
 
 .emptyText {
