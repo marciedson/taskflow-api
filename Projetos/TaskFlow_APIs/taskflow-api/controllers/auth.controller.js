@@ -1,9 +1,10 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../database/db');
+const usuarioModel = require('../models/usuario.model');
 
 const authController = {
   async login(req, res) {
-    const { email, senha } = req.body;
+    const { email, senha } = req.body || {};
 
     if (!email || !senha) {
       return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
@@ -13,18 +14,22 @@ const authController = {
       const { rows } = await pool.query(
         `SELECT id, nome, email, senha_hash
          FROM usuarios
-         WHERE email = $1
+         WHERE lower(email) = lower($1)
          LIMIT 1`,
         [String(email).trim()]
       );
 
-      const usuario = rows[0];
-      if (!usuario) {
-        return res.status(401).json({ erro: 'Credenciais inválidas' });
-      }
+      const usuarioBanco = rows[0];
+      const usuarioJson = usuarioBanco
+        ? null
+        : usuarioModel.listar().find(
+            usuario => String(usuario.email).toLowerCase() === String(email).trim().toLowerCase()
+          );
+      const usuario = usuarioBanco || usuarioJson;
 
-      const senhaValida = usuario.senha_hash && usuario.senha_hash === senha;
-      if (!senhaValida) {
+      if (!usuario || (usuarioBanco
+        ? usuarioBanco.senha_hash !== senha
+        : usuarioJson.senha !== senha)) {
         return res.status(401).json({ erro: 'Credenciais inválidas' });
       }
 
