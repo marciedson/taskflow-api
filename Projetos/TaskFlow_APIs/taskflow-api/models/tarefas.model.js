@@ -1,113 +1,82 @@
-const pool = require('../database/db');
+const prisma = require('../database/prisma');
 
-const camposTarefa = `
-  t.id,
-  t.texto AS titulo,
-  t.coluna,
-  t.ordem,
-  t.projeto_id AS "projetoId",
-  t.usuario_id AS "usuarioId",
-  t.criado_em AS "criadoEm",
-  u.nome AS "usuarioNome",
-  pr.nome AS "projetoNome",
-  CASE lower(p.descricao)
-    WHEN 'alto' THEN 'alta'
-    WHEN 'medio' THEN 'media'
-    WHEN 'baixo' THEN 'baixa'
-    ELSE lower(p.descricao)
-  END AS prioridade`;
-
-async function buscarPrioridadeId(prioridade) {
-  if (prioridade === undefined || prioridade === null || prioridade === '') return null;
-
-  const nomesPrioridade = { alta: 'alto', media: 'medio', baixa: 'baixo' };
-  const descricao = nomesPrioridade[String(prioridade).toLowerCase()];
-  if (!descricao) throw new Error('Prioridade inválida');
-
-  const { rows } = await pool.query(
-    'SELECT MIN(id) AS id FROM prioridades WHERE lower(descricao) = $1',
-    [descricao]
-  );
-
-  if (!rows[0] || !rows[0].id) throw new Error(`Prioridade '${prioridade}' não encontrada no banco`);
-  return rows[0].id;
-}
-
-async function listar(usuarioId) {
-  const { rows } = await pool.query(`
-    SELECT ${camposTarefa}
-    FROM tarefas t
-    LEFT JOIN usuarios u ON u.id = t.usuario_id
-    LEFT JOIN projetos pr ON pr.id = t.projeto_id
-    LEFT JOIN prioridades p ON p.id = t.id_prioridades
-    WHERE t.usuario_id = $1
-    ORDER BY t.ordem, t.id
-  `, [usuarioId]);
-
-  return rows;
-}
-
-async function buscarPorId(id, usuarioId) {
-  const { rows } = await pool.query(`
-    SELECT ${camposTarefa}
-    FROM tarefas t
-    LEFT JOIN usuarios u ON u.id = t.usuario_id
-    LEFT JOIN projetos pr ON pr.id = t.projeto_id
-    LEFT JOIN prioridades p ON p.id = t.id_prioridades
-    WHERE t.id = $1 AND t.usuario_id = $2
-  `, [id, usuarioId]);
-
-  return rows[0] || null;
-}
-
-async function adicionar({ titulo, coluna, ordem, projetoId, usuarioId, prioridade }) {
-  const prioridadeId = await buscarPrioridadeId(prioridade || 'media');
-
-  const { rows } = await pool.query(`
-    INSERT INTO tarefas (texto, coluna, ordem, projeto_id, usuario_id, id_prioridades)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING id
-  `, [titulo, coluna || 'afazer', ordem || 0, projetoId, usuarioId, prioridadeId]);
-
-  return await buscarPorId(rows[0].id, usuarioId);
-}
-
-async function atualizar(id, usuarioId, { titulo, coluna, ordem, projetoId, prioridade }) {
-  let prioridadeId = null;
-  if (prioridade) {
-    prioridadeId = await buscarPrioridadeId(prioridade);
-  }
-
-  const { rows } = await pool.query(`
-    UPDATE tarefas
-    SET texto = COALESCE($1, texto),
-        coluna = COALESCE($2, coluna),
-        ordem = COALESCE($3, ordem),
-        projeto_id = COALESCE($4, projeto_id),
-        id_prioridades = COALESCE($5, id_prioridades)
-    WHERE id = $6 AND usuario_id = $7
-    RETURNING id
-  `, [titulo, coluna, ordem, projetoId, prioridadeId, id, usuarioId]);
-
-  if (rows.length === 0) return null;
-
-  return await buscarPorId(id, usuarioId);
-}
-
-async function remover(id, usuarioId) {
-  const { rows } = await pool.query(`
-    DELETE FROM tarefas
-    WHERE id = $1 AND usuario_id = $2
-    RETURNING id
-  `, [id, usuarioId]);
-
-  return rows[0] || null;
-}
-
-module.exports = {
-  listar,
-  buscarPorId,
-  adicionar,
-  atualizar,
-  remover
+// Relações com SELECT apenas do campo nome (evita vazar senhas/dados extras)[cite: 20, 22]
+const incluirNomes = {
+  projetos: { select: { nome: true } },
+  usuarios: { select: { nome: true } },
 };
+
+// Mantém o contrato do JSON que o front-end espera[cite: 21, 23]
+function formatarTarefa(tarefa) {
+  if (!tarefa) return null;
+  const { projetos, usuarios, ...resto } = tarefa;
+  return {
+    ...resto,
+    projeto: projetos?.nome,
+    usuario: usuarios?.nome,
+  };
+}
+
+const tarefaModel = {
+  // 1. LISTAR: Busca todas as tarefas ordenadas por ID[cite: 22]
+  listar: async () => {
+    const lista = await prisma.tarefas.findMany({
+      include: incluirNomes,
+      orderBy: { id: 'asc' },
+    });
+    return lista.map(formatarTarefa);
+  },
+
+  // 2. BUSCAR POR ID: Busca uma tarefa específica pela chave primária[cite: 24]
+  buscar: async (id) => {
+    const tarefa = await prisma.tarefas.findUnique({
+      where: { id: parseInt(id) },
+      include: incluirNomes,
+    });
+    return formatarTarefa(tarefa);
+  },
+
+  // 3. CRIAR: Insere uma nova tarefa no banco
+  criar: async (dados) => {
+    const novaTarefa = await prisma.tarefas.create({
+      data: {
+        texto: dados.texto,
+        coluna: dados.coluna,
+        ordem: dados.ordem ?? 0,
+        projeto_id: parseInt(dados.projeto_id),
+        usuario_id: parseInt(dados.usuario_id),
+        idprioridade: parseInt(dados.idprioridade),
+      },
+      include: incluirNomes,
+    });
+    return formatarTarefa(novaTarefa);
+  },
+
+  // 4. ATUALIZAR: Atualiza os dados de uma tarefa existente
+  atualizar: async (id, dados) => {
+    const tarefaAtualizada = await prisma.tarefas.update({
+      where: { id: parseInt(id) },
+      data: {
+        ...(dados.texto !== undefined && { texto: dados.texto }),
+        ...(dados.coluna !== undefined && { coluna: dados.coluna }),
+        ...(dados.ordem !== undefined && { ordem: dados.ordem }),
+        ...(dados.projeto_id !== undefined && { projeto_id: parseInt(dados.projeto_id) }),
+        ...(dados.usuario_id !== undefined && { usuario_id: parseInt(dados.usuario_id) }),
+        ...(dados.idprioridade !== undefined && { idprioridade: parseInt(dados.idprioridade) }),
+        ...(dados.iniciada_em !== undefined && { iniciada_em: dados.iniciada_em }),
+        ...(dados.concluida_em !== undefined && { concluida_em: dados.concluida_em }),
+      },
+      include: incluirNomes,
+    });
+    return formatarTarefa(tarefaAtualizada);
+  },
+
+  // 5. DELETAR: Remove uma tarefa pelo ID
+  deletar: async (id) => {
+    return await prisma.tarefas.delete({
+      where: { id: parseInt(id) },
+    });
+  },
+};
+
+module.exports = tarefaModel;
