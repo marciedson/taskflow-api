@@ -52,6 +52,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/tarefas', tarefasRoutes);
+app.use('/api/tarefas', tarefasRoutes);
 app.use('/usuarios', usuariosRoutes);
 app.use('/projetos', projetosRoutes);
 app.use('/auth', authRoutes);
