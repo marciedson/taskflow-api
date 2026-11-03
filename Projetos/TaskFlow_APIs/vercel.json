@@ -1,20 +1,17 @@
 {
-  "buildCommand": "npm run prisma:generate",
-  {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
+  "buildCommand": "npm run prisma:generate",
   "builds": [
     {
-      "src": "src/index.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "src/index.js"
+      "dest": "/api/index.js"
     }
   ]
-}
-
-  
 }
