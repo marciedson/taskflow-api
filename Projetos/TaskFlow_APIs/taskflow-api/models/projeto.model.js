@@ -1,32 +1,52 @@
 const prisma = require('../database/prisma');
 
+const incluirDono = {
+  usuarios: { select: { nome: true } },
+};
+
+function formatarProjeto(projeto) {
+  if (!projeto) return null;
+
+  const { usuarios, ...dados } = projeto;
+  return {
+    ...dados,
+    usuarioId: dados.usuario_id,
+    usuarioNome: usuarios?.nome,
+  };
+}
+
 function converterId(valor) {
   const id = Number(valor);
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
 const projetoModel = {
-  listar: (usuarioId) => prisma.projetos.findMany({
-    where: { usuario_id: usuarioId },
-    orderBy: { id: 'asc' },
-  }),
+  listar: async () => {
+    const projetos = await prisma.projetos.findMany({
+      include: incluirDono,
+      orderBy: { id: 'asc' },
+    });
+    return projetos.map(formatarProjeto);
+  },
 
-  buscarPorId: (valor, usuarioId) => {
+  buscarPorId: async (valor) => {
     const id = converterId(valor);
     if (!id) return null;
 
-    return prisma.projetos.findFirst({
-      where: { id, usuario_id: usuarioId },
-    });
+    return formatarProjeto(await prisma.projetos.findUnique({
+      where: { id },
+      include: incluirDono,
+    }));
   },
 
-  criar: (projeto, usuarioId) => prisma.projetos.create({
+  criar: async (projeto, usuarioId) => formatarProjeto(await prisma.projetos.create({
     data: {
       nome: projeto.nome,
       descricao: projeto.descricao,
       usuario_id: usuarioId,
     },
-  }),
+    include: incluirDono,
+  })),
 
   atualizar: async (valor, usuarioId, dados) => {
     const id = converterId(valor);
@@ -40,7 +60,7 @@ const projetoModel = {
       },
     });
     if (!resultado.count) return null;
-    return projetoModel.buscarPorId(id, usuarioId);
+    return projetoModel.buscarPorId(id);
   },
 
   deletar: async (valor, usuarioId) => {

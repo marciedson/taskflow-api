@@ -64,12 +64,8 @@ async function buscarPrioridadeId(prioridade) {
 }
 
 const tarefaModel = {
-  listar: async (usuarioId) => {
-    const idUsuario = converterId(usuarioId);
-    if (!idUsuario) throw new TypeError('usuarioId inválido');
-
+  listar: async () => {
     const tarefas = await prisma.tarefas.findMany({
-      where: { usuario_id: idUsuario },
       include: incluirRelacoes,
       orderBy: { id: 'asc' },
     });
@@ -77,13 +73,12 @@ const tarefaModel = {
     return tarefas.map(formatarTarefa);
   },
 
-  buscarPorId: async (id, usuarioId) => {
+  buscarPorId: async (id) => {
     const idTarefa = converterId(id);
-    const idUsuario = converterId(usuarioId);
-    if (!idTarefa || !idUsuario) return null;
+    if (!idTarefa) return null;
 
-    const tarefa = await prisma.tarefas.findFirst({
-      where: { id: idTarefa, usuario_id: idUsuario },
+    const tarefa = await prisma.tarefas.findUnique({
+      where: { id: idTarefa },
       include: incluirRelacoes,
     });
 

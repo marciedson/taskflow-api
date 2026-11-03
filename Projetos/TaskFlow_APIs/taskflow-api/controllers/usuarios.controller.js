@@ -43,6 +43,9 @@ exports.criar = async (req, res) => {
 exports.atualizar = async (req, res) => {
     try {
         const { id } = req.params;
+        if (Number(id) !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Você só pode atualizar seus próprios dados' });
+        }
         const { nome, email, senha } = req.body;
 
         const usuarioExistente = await Usuario.buscarPorId(id);
@@ -65,6 +68,9 @@ exports.atualizar = async (req, res) => {
 exports.deletar = async (req, res) => {
     try {
         const { id } = req.params;
+        if (Number(id) !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Você só pode remover sua própria conta' });
+        }
 
         const removido = await Usuario.deletar(id);
         if (!removido) {

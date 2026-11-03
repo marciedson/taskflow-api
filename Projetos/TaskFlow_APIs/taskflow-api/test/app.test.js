@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const jwt = require('jsonwebtoken');
 const { after, before, test } = require('node:test');
 const app = require('../server');
 
@@ -45,6 +46,25 @@ test('protected project routes reject requests without a token', async () => {
   const response = await fetch(`${baseUrl}/projetos`);
 
   assert.equal(response.status, 401);
+});
+
+test('shared user directory requires an authenticated account', async () => {
+  const response = await fetch(`${baseUrl}/usuarios`);
+
+  assert.equal(response.status, 401);
+});
+
+test('an account cannot delete another user', async () => {
+  const token = jwt.sign(
+    { id: 1 },
+    process.env.JWT_SECRET || 'taskflow-local-secret'
+  );
+  const response = await fetch(`${baseUrl}/usuarios/2`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  assert.equal(response.status, 403);
 });
 
 test('login validates required credentials without querying the database', async () => {

@@ -7,6 +7,7 @@ function TarefaItem({
   status = 'pending',
   usuarioNome,
   projetoNome,
+  somenteLeitura = false,
   cep,
   cepInfo,
   deletando = false,
@@ -46,7 +47,7 @@ function TarefaItem({
   return (
     <li
       className={classeItem}
-      draggable={!deletando}
+      draggable={!deletando && !somenteLeitura}
       onDragStart={onArrastoIniciado}
       onDragEnd={onArrastoFinalizado}
       onAnimationEnd={deletando ? onExclusaoAnimada : undefined}
@@ -63,19 +64,22 @@ function TarefaItem({
               {usuarioNome && `Usuário: ${usuarioNome}`}
             </span>
           )}
+          {somenteLeitura && <span className={styles.cepDados}>Somente leitura</span>}
           {endereco && <span className={styles.cepDados}>{endereco}</span>}
         </div>
         <span className={classePrioridade}>{prioridade}</span>
       </div>
       <div className={styles.taskActions}>
-        <button
-          type="button"
-          className={styles.actionButton}
-          onClick={() => onEditar && onEditar()}
-        >
-          Editar
-        </button>
-        {status !== 'pending' && (
+        {!somenteLeitura && (
+          <button
+            type="button"
+            className={styles.actionButton}
+            onClick={() => onEditar && onEditar()}
+          >
+            Editar
+          </button>
+        )}
+        {!somenteLeitura && status !== 'pending' && (
           <button
             type='button'
             className={styles.actionButton}
@@ -84,7 +88,7 @@ function TarefaItem({
             Pendentes
           </button>
         )}
-        {status !== 'inprogress' && (
+        {!somenteLeitura && status !== 'inprogress' && (
           <button
             type='button'
             className={styles.actionButton}
@@ -93,7 +97,7 @@ function TarefaItem({
             Em Andamento
           </button>
         )}
-        {status !== 'done' && (
+        {!somenteLeitura && status !== 'done' && (
           <button
             type='button'
             className={styles.actionButton}
@@ -102,9 +106,11 @@ function TarefaItem({
             Concluídas
           </button>
         )}
-        <button className={styles.btnDeletar} onClick={onDeletar}>
-          Excluir
-        </button>
+        {!somenteLeitura && (
+          <button className={styles.btnDeletar} onClick={onDeletar}>
+            Excluir
+          </button>
+        )}
       </div>
     </li>
   );

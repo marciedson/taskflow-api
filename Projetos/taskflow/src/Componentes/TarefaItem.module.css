@@ -243,6 +243,12 @@
   transform: translateY(-1px);
 }
 
+.actionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
 .msgVazia {
   color: #94A3B8;
   font-size: 1rem;
