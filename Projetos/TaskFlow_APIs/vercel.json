@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run prisma:generate",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "generated/prisma/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/:path*",
