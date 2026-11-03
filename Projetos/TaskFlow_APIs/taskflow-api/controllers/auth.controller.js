@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const pool = require('../database/db');
 const usuarioModel = require('../models/usuario.model');
+const { hashPassword, verifyPassword } = require('../utils/password');
 
 const authController = {
   async login(req, res) {
@@ -11,26 +11,13 @@ const authController = {
     }
 
     try {
-      const { rows } = await pool.query(
-        `SELECT id, nome, email, senha_hash
-         FROM usuarios
-         WHERE lower(email) = lower($1)
-         LIMIT 1`,
-        [String(email).trim()]
-      );
-
-      const usuarioBanco = rows[0];
-      const usuarioJson = usuarioBanco
-        ? null
-        : usuarioModel.listar().find(
-            usuario => String(usuario.email).toLowerCase() === String(email).trim().toLowerCase()
-          );
-      const usuario = usuarioBanco || usuarioJson;
-
-      if (!usuario || (usuarioBanco
-        ? usuarioBanco.senha_hash !== senha
-        : usuarioJson.senha !== senha)) {
+      const usuario = await usuarioModel.buscarPorEmail(email);
+      if (!usuario || !(await verifyPassword(String(senha), usuario.senha_hash))) {
         return res.status(401).json({ erro: 'Credenciais inválidas' });
+      }
+
+      if (!usuario.senha_hash.startsWith('$2')) {
+        await usuarioModel.atualizarSenha(usuario.id, await hashPassword(String(senha)));
       }
 
       const segredoJwt = process.env.JWT_SECRET || 'taskflow-local-secret';

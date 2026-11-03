@@ -3,7 +3,9 @@ const router = express.Router();
 const projetosController = require('../controllers/projetos.controller');
 const validar = require('../middlewares/validar');
 const schemas = require('../middlewares/schemas');
+const autenticar = require('../middlewares/autenticar');
 
+router.use(autenticar);
 router.get('/', projetosController.listarTodos);
 router.get('/:id', projetosController.buscarPorId);
 router.post('/', validar(schemas.projeto), projetosController.criar);

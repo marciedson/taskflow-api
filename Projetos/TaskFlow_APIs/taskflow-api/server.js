@@ -6,16 +6,9 @@ const usuariosRoutes = require('./routes/usuarios.routes');
 const projetosRoutes = require('./routes/projetos.routes');
 const temporizador = require('./middlewares/logger');
 const authRoutes = require('./routes/auth.routes');
-
-const pool = require('./database/db');
-
-pool.query('SELECT NOW()', (err, res) => {
-   if (err) {
-       console.error('Erro ao conectar ao banco de dados:', err.message);
-   } else {
-       console.log('Conectado ao banco de dados com sucesso!', res.rows[0].now);
-   }
-});
+const prisma = require('./database/prisma');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger');
 
 const app = express();
 const PORTA = process.env.PORT || 3000;
@@ -43,12 +36,26 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-app.options(/(.*)/, cors());
 app.use(express.json());
 app.use(temporizador);
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.get('/api-docs.json', (req, res) => {
+    res.json(swaggerDocument);
+});
+
 app.get('/', (req, res) => {
     res.json({ mensagem: 'TaskFlow API funcionando!' });
+});
+
+app.get('/health', async (req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({ status: 'ok', banco: 'conectado' });
+    } catch (error) {
+        console.error('Erro na verificacao do banco de dados:', error.message);
+        res.status(503).json({ status: 'indisponivel', banco: 'desconectado' });
+    }
 });
 
 app.use('/tarefas', tarefasRoutes);

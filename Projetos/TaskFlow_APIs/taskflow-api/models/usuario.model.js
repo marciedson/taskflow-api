@@ -1,65 +1,82 @@
-const fs = require('fs');
-const path = require('path');
+const prisma = require('../database/prisma');
+const { hashPassword } = require('../utils/password');
 
-const diretorioDados = path.join(__dirname, '..', 'data');
-const arquivoDados = path.join(diretorioDados, 'usuarios.json');
-const usuariosPadrao = [
-    {
-        id: 1,
-        nome: 'Marciedson',
-        email: 'admin@admin.com',
-        senha: '123456'
-    }
-];
-
-function carregarUsuarios() {
-    fs.mkdirSync(diretorioDados, { recursive: true });
-
-    if (!fs.existsSync(arquivoDados)) {
-        fs.writeFileSync(arquivoDados, JSON.stringify(usuariosPadrao, null, 2), 'utf8');
-        return [...usuariosPadrao];
-    }
-
-    const conteudo = fs.readFileSync(arquivoDados, 'utf8');
-    return conteudo.trim() ? JSON.parse(conteudo) : [];
-}
-
-function salvarUsuarios() {
-    fs.writeFileSync(arquivoDados, JSON.stringify(usuarios, null, 2), 'utf8');
-}
-
-let usuarios = carregarUsuarios();
-
-function buscarPorEmail(email) {
-    return usuarios.find(u => u.email === email);
-}
-
-module.exports = {
-    listar: () => usuarios,
-    buscarPorId: (id) => usuarios.find(u => u.id === Number(id)),
-    buscarPorEmail: (email) => usuarios.find(u => u.email === email),
-    criar: (usuario) => {
-        const novoUsuario = { id: Date.now(), ...usuario };
-        usuarios.push(novoUsuario);
-        salvarUsuarios();
-        return novoUsuario;
-    },
-    atualizar: (id, usuarioAtualizado) => {
-        const indice = usuarios.findIndex(u => u.id === Number(id));
-        if (indice === -1) return null;
-
-        usuarios[indice] = { ...usuarios[indice], ...usuarioAtualizado, id: Number(id) };
-    salvarUsuarios();
-        return usuarios[indice];
-    },
-    deletar: (id) => {
-        const indice = usuarios.findIndex(u => u.id === Number(id));
-        if (indice === -1) return null;
-
-        const [removido] = usuarios.splice(indice, 1);
-    salvarUsuarios();
-        return removido;
-    }
+const camposPublicos = {
+  id: true,
+  nome: true,
+  email: true,
+  criado_em: true,
 };
 
-module.exports.buscarPorEmail = buscarPorEmail;
+function converterId(valor) {
+  const id = Number(valor);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+const usuarioModel = {
+  listar: () => prisma.usuarios.findMany({
+    select: camposPublicos,
+    orderBy: { id: 'asc' },
+  }),
+
+  buscarPorId: (valor) => {
+    const id = converterId(valor);
+    if (!id) return null;
+
+    return prisma.usuarios.findUnique({
+      where: { id },
+      select: camposPublicos,
+    });
+  },
+
+  buscarPorEmail: (email) => prisma.usuarios.findFirst({
+    where: {
+      email: {
+        equals: String(email).trim(),
+        mode: 'insensitive',
+      },
+    },
+  }),
+
+  atualizarSenha: (id, senha_hash) => prisma.usuarios.update({
+    where: { id },
+    data: { senha_hash },
+  }),
+
+  criar: async ({ nome, email, senha }) => prisma.usuarios.create({
+    data: {
+      nome,
+      email: email.trim().toLowerCase(),
+      senha_hash: await hashPassword(senha),
+    },
+    select: camposPublicos,
+  }),
+
+  atualizar: async (valor, dados) => {
+    const id = converterId(valor);
+    if (!id) return null;
+
+    const data = {};
+    if (dados.nome !== undefined) data.nome = dados.nome;
+    if (dados.email !== undefined) data.email = dados.email.trim().toLowerCase();
+    if (dados.senha !== undefined) data.senha_hash = await hashPassword(dados.senha);
+    if (Object.keys(data).length === 0) return usuarioModel.buscarPorId(id);
+
+    const resultado = await prisma.usuarios.updateMany({
+      where: { id },
+      data,
+    });
+    if (!resultado.count) return null;
+    return usuarioModel.buscarPorId(id);
+  },
+
+  deletar: async (valor) => {
+    const id = converterId(valor);
+    if (!id) return false;
+
+    const resultado = await prisma.usuarios.deleteMany({ where: { id } });
+    return resultado.count > 0;
+  },
+};
+
+module.exports = usuarioModel;
