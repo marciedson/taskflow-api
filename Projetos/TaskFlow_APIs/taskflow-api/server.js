@@ -49,12 +49,24 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', async (req, res) => {
+    if (!process.env.DATABASE_URL) {
+        return res.status(503).json({
+            status: 'indisponivel',
+            banco: 'desconectado',
+            erro: 'DATABASE_URL não está configurada no ambiente da API',
+        });
+    }
+
     try {
         await prisma.$queryRaw`SELECT 1`;
         res.json({ status: 'ok', banco: 'conectado' });
     } catch (error) {
         console.error('Erro na verificacao do banco de dados:', error.message);
-        res.status(503).json({ status: 'indisponivel', banco: 'desconectado' });
+        res.status(503).json({
+            status: 'indisponivel',
+            banco: 'desconectado',
+            erro: 'Não foi possível conectar ao banco de dados',
+        });
     }
 });
 
