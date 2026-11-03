@@ -34,12 +34,15 @@ test('Swagger document is available as JSON and UI', async () => {
   const specResponse = await fetch(`${baseUrl}/api-docs.json`);
   const spec = await specResponse.json();
   const uiResponse = await fetch(`${baseUrl}/api-docs/`);
+  const docsAliasResponse = await fetch(`${baseUrl}/docs/`);
 
   assert.equal(specResponse.status, 200);
   assert.equal(spec.openapi, '3.0.3');
   assert.ok(spec.paths['/auth/login']);
   assert.equal(uiResponse.status, 200);
   assert.match(uiResponse.headers.get('content-type'), /text\/html/);
+  assert.equal(docsAliasResponse.status, 200);
+  assert.match(docsAliasResponse.headers.get('content-type'), /text\/html/);
 });
 
 test('protected project routes reject requests without a token', async () => {
