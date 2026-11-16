@@ -33,6 +33,11 @@
   transform: scale(0.98);
 }
 
+.tarefaAlvo {
+  border-color: #F5A623;
+  box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.2);
+}
+
 .tarefaExcluindo {
   pointer-events: none;
   animation: tarefaExcluindo 360ms ease-in forwards;
@@ -193,12 +198,41 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   list-style: none;
   margin: 0;
   border: 1px solid transparent;
   border-radius: 0 0 18px 18px;
   transition: background-color 0.18s ease, border-color 0.18s ease;
+  max-height: min(65vh, 640px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #334155 #0D1B2A;
+  scrollbar-width: thin;
+}
+
+.columnBody::-webkit-scrollbar {
+  width: 8px;
+}
+
+.columnBody::-webkit-scrollbar-track {
+  background: #0D1B2A;
+  border-radius: 999px;
+}
+
+.columnBody::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border: 2px solid #0D1B2A;
+  border-radius: 999px;
+}
+
+.columnBody::-webkit-scrollbar-thumb:hover {
+  background-color: #F5A623;
+}
+
+.columnBody > li {
+  flex: 0 0 auto;
 }
 
 .columnBodyDropTarget {
@@ -224,6 +258,38 @@
 .taskActions {
   display: grid;
   gap: 10px;
+}
+
+.reorderActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.reorderButton {
+  width: 36px;
+  height: 32px;
+  border: 1px solid rgba(245, 166, 35, 0.35);
+  border-radius: 8px;
+  background: rgba(245, 166, 35, 0.1);
+  color: #F5A623;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reorderButton:hover:not(:disabled) {
+  background: rgba(245, 166, 35, 0.22);
+}
+
+.reorderButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.reorderButton:focus-visible {
+  outline: 2px solid #F5A623;
+  outline-offset: 2px;
 }
 
 .actionButton {

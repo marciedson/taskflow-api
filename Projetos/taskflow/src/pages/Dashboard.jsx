@@ -57,6 +57,7 @@ export default function Home() {
   const [tarefaParaExcluir, setTarefaParaExcluir] = useState(null);
   const [excluindoTarefa, setExcluindoTarefa] = useState(false);
   const [tarefaSendoRemovida, setTarefaSendoRemovida] = useState(null);
+  const [salvandoOrdem, setSalvandoOrdem] = useState(false);
 
   useEffect(() => {
     let ativo = true;
@@ -224,6 +225,58 @@ export default function Home() {
     }
   };
 
+  const reordenarTarefas = async (tarefasReordenadas) => {
+    if (salvandoOrdem || tarefasReordenadas.length < 2) return;
+
+    const atualizadas = tarefasReordenadas.map((tarefa, indice) => ({
+      ...tarefa,
+      ordem: indice + 1,
+    }));
+    setSalvandoOrdem(true);
+    setErro("");
+    setTarefas((atuais) =>
+      atuais.map((tarefa) => {
+        const atualizada = atualizadas.find((item) => item.id === tarefa.id);
+        return atualizada ? { ...tarefa, ordem: atualizada.ordem } : tarefa;
+      })
+    );
+
+    try {
+      await Promise.all(
+        atualizadas.map((tarefa) =>
+          api.put(`/tarefas/${tarefa.id}`, {
+            titulo: tarefa.texto,
+            prioridade: tarefa.prioridade || "media",
+            coluna: STATUS_PARA_COLUNA[tarefa.status],
+            projetoId: tarefa.projetoId,
+            ordem: tarefa.ordem,
+          })
+        )
+      );
+    } catch (error) {
+      let mensagem = obterMensagemErro(
+        error,
+        "Não foi possível salvar a nova ordem das tarefas."
+      );
+      try {
+        const { data } = await api.get("/tarefas");
+        if (Array.isArray(data)) {
+          setTarefas(data.map(converterTarefa));
+        } else {
+          mensagem += " A API retornou um formato inesperado ao atualizar a lista.";
+        }
+      } catch (erroAoRecarregar) {
+        mensagem += ` Não foi possível atualizar a lista: ${obterMensagemErro(
+          erroAoRecarregar,
+          "erro desconhecido"
+        )}`;
+      }
+      setErro(mensagem);
+    } finally {
+      setSalvandoOrdem(false);
+    }
+  };
+
   const tarefasDoProjeto = projetoSelecionadoId === "todos"
     ? tarefas
     : tarefas.filter((tarefa) => String(tarefa.projetoId) === projetoSelecionadoId);
@@ -326,6 +379,8 @@ export default function Home() {
           onDeletar={deletarTarefa}
           onConcluir={alternarConcluida}
           onEditar={abrirEditar}
+          onReordenar={reordenarTarefas}
+          reordenacaoDesabilitada={salvandoOrdem}
           tarefaSendoRemovida={tarefaSendoRemovida}
           onExclusaoAnimada={finalizarAnimacaoExclusao}
         />

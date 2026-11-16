@@ -2,7 +2,7 @@
   "scripts": {
     "start": "node taskflow-api/server.js",
     "dev": "nodemon taskflow-api/server.js",
-    "test": "node --test taskflow-api/test/*.test.js",
+    "test": "npm --prefix taskflow-api test",
     "prisma:generate": "prisma generate"
   },
   "devDependencies": {

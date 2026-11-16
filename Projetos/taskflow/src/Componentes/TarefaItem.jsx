@@ -12,12 +12,21 @@ function TarefaItem({
   cepInfo,
   deletando = false,
   arrastando = false,
+  reordenacaoDesabilitada = false,
+  comoAlvoDeArrasto = false,
+  podeReordenar = false,
+  podeMoverAcima = false,
+  podeMoverAbaixo = false,
   onDeletar,
   onConcluir,
   onStatusChange,
   onEditar,
+  onMoverAcima,
+  onMoverAbaixo,
   onExclusaoAnimada,
   onArrastoIniciado,
+  onArrastoSobre,
+  onSoltar,
   onArrastoFinalizado,
 }) {
   const classeItem = [
@@ -26,6 +35,7 @@ function TarefaItem({
       styles[prioridade],
     deletando ? styles.tarefaExcluindo : '',
     arrastando ? styles.tarefaArrastando : '',
+    comoAlvoDeArrasto ? styles.tarefaAlvo : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -47,8 +57,10 @@ function TarefaItem({
   return (
     <li
       className={classeItem}
-      draggable={!deletando && !somenteLeitura}
+      draggable={!deletando && !somenteLeitura && !reordenacaoDesabilitada}
       onDragStart={onArrastoIniciado}
+      onDragOver={onArrastoSobre}
+      onDrop={onSoltar}
       onDragEnd={onArrastoFinalizado}
       onAnimationEnd={deletando ? onExclusaoAnimada : undefined}
     >
@@ -70,6 +82,34 @@ function TarefaItem({
         <span className={classePrioridade}>{prioridade}</span>
       </div>
       <div className={styles.taskActions}>
+        {!somenteLeitura && podeReordenar && (
+          <div
+            className={styles.reorderActions}
+            role="group"
+            aria-label="Reordenar por prioridade"
+          >
+            <button
+              type="button"
+              className={styles.reorderButton}
+              aria-label="Mover tarefa para cima"
+              title="Mover para cima"
+              disabled={!podeMoverAcima || reordenacaoDesabilitada}
+              onClick={onMoverAcima}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              className={styles.reorderButton}
+              aria-label="Mover tarefa para baixo"
+              title="Mover para baixo"
+              disabled={!podeMoverAbaixo || reordenacaoDesabilitada}
+              onClick={onMoverAbaixo}
+            >
+              ↓
+            </button>
+          </div>
+        )}
         {!somenteLeitura && (
           <button
             type="button"
