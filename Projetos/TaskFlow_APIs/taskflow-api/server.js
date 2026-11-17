@@ -4,6 +4,7 @@ const cors = require('cors');
 const tarefasRoutes = require('./routes/tarefas.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const projetosRoutes = require('./routes/projetos.routes');
+const prioridadesRoutes = require('./routes/prioridades.routes');
 const temporizador = require('./middlewares/logger');
 const authRoutes = require('./routes/auth.routes');
 const prisma = require('./database/prisma');
@@ -75,6 +76,7 @@ app.use('/tarefas', tarefasRoutes);
 app.use('/api/tarefas', tarefasRoutes);
 app.use('/usuarios', usuariosRoutes);
 app.use('/projetos', projetosRoutes);
+app.use('/prioridades', prioridadesRoutes);
 app.use('/auth', authRoutes);
 
 app.use((req, res) => {

@@ -104,7 +104,13 @@ const tarefaModel = {
       usuario_id: usuarioId,
     };
 
-    const prioridadeId = await buscarPrioridadeId(dados.prioridade);
+    const prioridadeIdInformada = dados.idprioridade ?? dados.id_prioridades;
+    const prioridadeId = prioridadeIdInformada === undefined
+      ? await buscarPrioridadeId(dados.prioridade)
+      : converterId(prioridadeIdInformada);
+    if (prioridadeIdInformada !== undefined && !prioridadeId) {
+      throw new TypeError('idprioridade inválido');
+    }
     if (prioridadeId !== undefined) data.id_prioridades = prioridadeId;
 
     const tarefa = await prisma.tarefas.create({

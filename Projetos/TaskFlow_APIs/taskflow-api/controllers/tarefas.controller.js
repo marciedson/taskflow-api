@@ -14,7 +14,7 @@ exports.buscarPorId = async (req, res) => {
         const tarefa = await Tarefa.buscarPorId(req.params.id, req.usuario.id);
 
         if (!tarefa) {
-            return res.status(404).json({ erro: 'Tarefa não encontrada' });
+            return res.status(404).json({ erro: { mensagem: 'Tarefa não encontrada' } });
         }
 
         res.status(200).json(tarefa);
@@ -25,7 +25,7 @@ exports.buscarPorId = async (req, res) => {
 
 exports.criar = async (req, res) => {
     try {
-        const { titulo, prioridade, coluna, ordem } = req.body;
+        const { titulo, texto, prioridade, idprioridade, coluna, ordem } = req.body;
         const projetoIdInformado = req.body.projetoId ?? req.body.projeto_id;
         const projetoId = Number(projetoIdInformado);
 
@@ -34,8 +34,9 @@ exports.criar = async (req, res) => {
         }
 
         const tarefa = await Tarefa.adicionar({
-            titulo, 
+            titulo: titulo ?? texto,
             prioridade,
+            idprioridade,
             coluna: coluna || 'afazer',
             ordem,
             projetoId,
@@ -46,7 +47,7 @@ exports.criar = async (req, res) => {
             return res.status(404).json({ erro: 'Projeto não encontrado para este usuário' });
         }
 
-        res.status(201).json({ mensagem: 'Tarefa criada com sucesso!', tarefa });
+        res.status(201).json({ id: tarefa.id, mensagem: 'Tarefa criada com sucesso!', tarefa });
     } catch (error) {
         res.status(500).json({ erro: 'Erro ao criar tarefa', detalhes: error.message });
     }
@@ -83,7 +84,7 @@ exports.deletar = async (req, res) => {
     try {
         const removida = await Tarefa.remover(req.params.id, req.usuario.id);
         if (!removida) {
-            return res.status(404).json({ erro: 'Tarefa não encontrada' });
+            return res.status(404).json({ erro: { mensagem: 'Tarefa não encontrada' } });
         }
 
         res.status(200).json({ mensagem: 'Tarefa removida com sucesso!' });

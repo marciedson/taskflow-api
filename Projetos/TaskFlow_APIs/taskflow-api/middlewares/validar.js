@@ -7,7 +7,8 @@ function validar(schema) {
       const valor = req.body[campo];
       const ausente = valor === undefined || valor === null || valor === '';
 
-      if (regras.obrigatorio && ausente) {
+      const alternativo = regras.alternativo && req.body[regras.alternativo];
+      if (regras.obrigatorio && ausente && !alternativo) {
         erros.push(`O campo '${campo}' é obrigatório`);
         continue;
       }
