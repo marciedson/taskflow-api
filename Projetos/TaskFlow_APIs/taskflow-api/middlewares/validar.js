@@ -1,13 +1,14 @@
 function validar(schema) {
   return function(req, res, next) {
     const erros = [];
+    const body = req.body || {};
 
     for (const campo in schema) {
       const regras = schema[campo];
-      const valor = req.body[campo];
+      const valor = body[campo];
       const ausente = valor === undefined || valor === null || valor === '';
 
-      const alternativo = regras.alternativo && req.body[regras.alternativo];
+      const alternativo = regras.alternativo && body[regras.alternativo];
       if (regras.obrigatorio && ausente && !alternativo) {
         erros.push(`O campo '${campo}' é obrigatório`);
         continue;
