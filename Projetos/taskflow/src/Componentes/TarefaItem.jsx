@@ -3,10 +3,14 @@ import styles from './TarefaItem.module.css';
 function TarefaItem({
   texto,
   concluida = false,
-  prioridade = 'media',
+  prioridade,
+  rotuloPrioridade,
   status = 'pending',
   usuarioNome,
   projetoNome,
+  onMover,
+  colunaAnterior,
+  colunaProxima,
   somenteLeitura = false,
   cep,
   cepInfo,
@@ -29,10 +33,11 @@ function TarefaItem({
   onSoltar,
   onArrastoFinalizado,
 }) {
+  const prioridadeEfetiva = prioridade || 'media';
   const classeItem = [
     (concluida ? styles.tarefa + ' ' + styles.concluida : styles.tarefa) +
       ' ' +
-      styles[prioridade],
+      styles[prioridadeEfetiva],
     deletando ? styles.tarefaExcluindo : '',
     arrastando ? styles.tarefaArrastando : '',
     comoAlvoDeArrasto ? styles.tarefaAlvo : '',
@@ -46,7 +51,13 @@ function TarefaItem({
       : styles.textoTarefa;
 
   const classePrioridade =
-    styles['badge-prioridade'] + ' ' + styles['badge-' + prioridade];
+    styles['badge-prioridade'] + ' ' + styles['badge-' + prioridadeEfetiva];
+  const textoPrioridade =
+    rotuloPrioridade || (prioridade ? prioridade : 'Sem prioridade');
+  const textoProjeto =
+    projetoNome || 'Sem projeto';
+  const textoUsuario =
+    usuarioNome || 'Sem responsável';
 
   const endereco = cepInfo
     ? `${cepInfo.logradouro || ''}${cepInfo.logradouro ? ', ' : ''}${cepInfo.bairro || ''}${cepInfo.bairro ? ' — ' : ''}${cepInfo.localidade || ''}${cepInfo.uf ? `/${cepInfo.uf}` : ''}`
@@ -66,22 +77,46 @@ function TarefaItem({
     >
       <div className={styles.taskContent}>
         <div>
-          <span className={classeTexto} onClick={onConcluir}>
+          <span
+            className={classeTexto}
+            onClick={onConcluir}
+            onDoubleClick={() => onEditar && onEditar()}
+          >
             {texto}
           </span>
-          {(projetoNome || usuarioNome) && (
+          {(projetoNome || usuarioNome || onMover) && (
             <span className={styles.cepDados}>
-              {projetoNome && `Projeto: ${projetoNome}`}
-              {projetoNome && usuarioNome && ' · '}
-              {usuarioNome && `Usuário: ${usuarioNome}`}
+              {`Projeto: ${textoProjeto}`}
+              {' · '}
+              {`Usuário: ${textoUsuario}`}
             </span>
           )}
           {somenteLeitura && <span className={styles.cepDados}>Somente leitura</span>}
           {endereco && <span className={styles.cepDados}>{endereco}</span>}
         </div>
-        <span className={classePrioridade}>{prioridade}</span>
+        <span className={classePrioridade}>{textoPrioridade}</span>
       </div>
       <div className={styles.taskActions}>
+        {onMover && colunaAnterior && (
+          <button
+            type="button"
+            className={styles.actionButton}
+            aria-label="←"
+            onClick={() => onMover(colunaAnterior)}
+          >
+            ←
+          </button>
+        )}
+        {onMover && colunaProxima && (
+          <button
+            type="button"
+            className={styles.actionButton}
+            aria-label="→"
+            onClick={() => onMover(colunaProxima)}
+          >
+            →
+          </button>
+        )}
         {!somenteLeitura && podeReordenar && (
           <div
             className={styles.reorderActions}
@@ -147,8 +182,13 @@ function TarefaItem({
           </button>
         )}
         {!somenteLeitura && (
-          <button className={styles.btnDeletar} onClick={onDeletar}>
-            Excluir
+          <button
+            className={styles.btnDeletar}
+            onClick={onDeletar}
+            aria-label="X"
+            title="Excluir tarefa"
+          >
+            X
           </button>
         )}
       </div>

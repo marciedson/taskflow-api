@@ -9,7 +9,14 @@ const COLUMN_LABELS = {
 };
 const COLUMN_ORDER = ['pending', 'inprogress', 'done'];
 
-function ListaTarefas({ tarefas, onDeletar, onConcluir, onEditar }) {
+function ListaTarefas({
+  tarefas,
+  onDeletar,
+  onConcluir,
+  onEditar,
+  onMover,
+  colunaProxima,
+}) {
   const [kanbanTasks, setKanbanTasks] = useState([]);
 
   useEffect(() => {
@@ -70,9 +77,9 @@ function ListaTarefas({ tarefas, onDeletar, onConcluir, onEditar }) {
             </header>
             <ul className={styles.columnBody}>
               {tasksByColumn[columnKey].length === 0 ? (
-                <li className={styles.emptyText}>
+                <div className={styles.emptyText}>
                   Nenhuma tarefa nesta coluna.
-                </li>
+                </div>
               ) : (
                 tasksByColumn[columnKey].map((tarefa) => (
                   <TarefaItem
@@ -81,8 +88,20 @@ function ListaTarefas({ tarefas, onDeletar, onConcluir, onEditar }) {
                     concluida={tarefa.concluida}
                     prioridade={tarefa.prioridade}
                     status={tarefa.status}
+                    usuarioNome={
+                      tarefa.usuarioNome ?? tarefa.usuario ?? 'Sem responsável'
+                    }
+                    projetoNome={
+                      tarefa.projetoNome ?? tarefa.projeto ?? 'Sem projeto'
+                    }
                     cep={tarefa.cep}
                     cepInfo={tarefa.cepInfo}
+                    onMover={
+                      onMover
+                        ? (coluna) => onMover(tarefa.id, coluna)
+                        : undefined
+                    }
+                    colunaProxima={colunaProxima}
                     onDeletar={() => onDeletar(tarefa.id)}
                     onConcluir={() => onConcluir(tarefa.id)}
                     onStatusChange={(newStatus) =>
@@ -98,7 +117,7 @@ function ListaTarefas({ tarefas, onDeletar, onConcluir, onEditar }) {
       </div>
       {tarefas.length === 0 && (
         <p className={styles.msgVazia}>
-          Nenhuma tarefa cadastrada. Adicione uma acima!
+          Nenhuma tarefa aqui ainda.
         </p>
       )}
     </section>
