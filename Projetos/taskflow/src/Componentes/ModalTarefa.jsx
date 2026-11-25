@@ -8,6 +8,7 @@ function ModalTarefa({ isOpen, onClose, onSave, onDelete, task }) {
   const [cep, setCep] = useState('');
   const [cepInfo, setCepInfo] = useState(null);
   const [cepErro, setCepErro] = useState('');
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -24,6 +25,15 @@ function ModalTarefa({ isOpen, onClose, onSave, onDelete, task }) {
       setCepErro('');
     }
   }, [task, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const fecharComEscape = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', fecharComEscape);
+    return () => document.removeEventListener('keydown', fecharComEscape);
+  }, [isOpen, onClose]);
 
   const buscarCep = async (cepValor) => {
     const cepLimpo = cepValor.replace(/\D/g, '').slice(0, 8);
@@ -61,11 +71,18 @@ function ModalTarefa({ isOpen, onClose, onSave, onDelete, task }) {
     if (apenasDigitos.length === 8) buscarCep(apenasDigitos);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (texto.trim() === '') return;
+    if (texto.trim() === '' || salvando) return;
     const payload = { ...(task || {}), texto, prioridade, cep, cepInfo };
-    onSave(payload);
+    setSalvando(true);
+    try {
+      await onSave(payload);
+    } catch (error) {
+      setCepErro(error.response?.data?.erro || 'Não foi possível salvar a tarefa.');
+    } finally {
+      setSalvando(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -125,8 +142,8 @@ function ModalTarefa({ isOpen, onClose, onSave, onDelete, task }) {
           {cepErro && <p className={styles.cepErro}>{cepErro}</p>}
 
           <div className={styles.actions}>
-            <button type="submit" className={styles.saveBtn}>
-              {task ? 'Salvar' : 'Criar'}
+            <button type="submit" className={styles.saveBtn} disabled={salvando}>
+              {salvando ? 'Salvando...' : task ? 'Salvar' : 'Criar'}
             </button>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>
               Cancelar
